@@ -1,7 +1,5 @@
 package com.bqdungeon.model;
 
-import com.bqdungeon.model.*;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -17,12 +15,12 @@ public class GameGUI extends JFrame {
     private Inimigo inimigoAtual;
     private List<Sala> todasAsSalas;
     private int profundidade;
-    private Loja loja; // Nova unidade para a loja.
+    private Loja loja;
 
     // --- Componentes da Interface Principal ---
     private CardLayout cardLayout;
     private JPanel painelCentral;
-    private JLabel hpLabel, atkLabel, dinheiroLabel, nivelLabel, defesaLabel;
+    private JLabel hpLabel, atkLabel, dinheiroLabel, nivelLabel, defesaLabel, manaLabel;
     private JProgressBar xpBar;
     private JTextArea displayPrincipal;
     private DefaultListModel<Item> modeloListaInventario;
@@ -42,8 +40,9 @@ public class GameGUI extends JFrame {
 
     private void prepararMundo() {
         jogador = new Jogador("Aventureiro", 100, 15, 50, 3);
-        jogador.adicionarItem(new Item("Adaga Enferrujada", Item.TipoItem.EQUIPAMENTO_ARMA, 2, 5));
-        loja = new Loja(); // Inicializa a loja.
+        // Sugestão de correção para clareza: valorEfeito=0, bonusAtk=2
+        jogador.adicionarItem(new Item("Adaga Enferrujada", Item.TipoItem.EQUIPAMENTO_ARMA, 0, 5, 2, 0));
+        loja = new Loja();
 
         todasAsSalas = new ArrayList<>();
         profundidade = 1;
@@ -80,16 +79,25 @@ public class GameGUI extends JFrame {
 
         JPanel painelAtributos = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         painelAtributos.setOpaque(false);
+
+        // Criação dos JLabels
         nivelLabel = new JLabel("Nível 1");
         hpLabel = new JLabel("HP: 100/100");
+        manaLabel = new JLabel("MP: 50/50");
         atkLabel = new JLabel("ATK: 15");
         defesaLabel = new JLabel("DEF: 3");
+
+        // Estilização dos JLabels
         estilizarLabel(nivelLabel, Color.CYAN);
         estilizarLabel(hpLabel, Color.WHITE);
+        estilizarLabel(manaLabel, new Color(120, 120, 255));
         estilizarLabel(atkLabel, Color.WHITE);
         estilizarLabel(defesaLabel, Color.ORANGE);
+
+        // Adição dos JLabels ao painel na ordem correta
         painelAtributos.add(nivelLabel);
         painelAtributos.add(hpLabel);
+        painelAtributos.add(manaLabel);
         painelAtributos.add(atkLabel);
         painelAtributos.add(defesaLabel);
 
@@ -169,19 +177,20 @@ public class GameGUI extends JFrame {
 
         painelCentral.add(criarPainelExploracao(), "EXPLORACAO");
         painelCentral.add(criarPainelBatalha(), "BATALHA");
-        painelCentral.add(criarPainelLoja(), "LOJA"); // Adiciona o painel da loja.
+        painelCentral.add(criarPainelLoja(), "LOJA");
 
         return painelCentral;
     }
 
     private JPanel criarPainelLoja() {
-        JPanel painel = new JPanel(new BorderLayout(10, 10));
-        painel.setOpaque(false);
-        painel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        JPanel painelPrincipalLoja = new JPanel(new GridLayout(1, 2, 20, 0));
+        painelPrincipalLoja.setOpaque(false);
+        painelPrincipalLoja.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JLabel tituloLoja = new JLabel("Mercadora da Cripta", SwingConstants.CENTER);
-        tituloLoja.setFont(new Font("Tahoma", Font.BOLD, 24));
-        tituloLoja.setForeground(Color.CYAN);
+        JPanel painelCompra = new JPanel(new BorderLayout(10, 10));
+        painelCompra.setOpaque(false);
+        painelCompra.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Itens à Venda", 0, 0, null, Color.CYAN));
 
         DefaultListModel<Item> modeloListaLoja = new DefaultListModel<>();
         for (Item item : loja.getItensParaVenda()) {
@@ -191,7 +200,7 @@ public class GameGUI extends JFrame {
         listaItensLoja.setBackground(new Color(20, 20, 20));
         listaItensLoja.setForeground(Color.WHITE);
         listaItensLoja.setSelectionBackground(new Color(80, 80, 80));
-        listaItensLoja.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        listaItensLoja.setFont(new Font("Monospaced", Font.PLAIN, 14));
 
         JButton btnComprar = criarBotaoEstilizado("Comprar Item Selecionado");
         btnComprar.addActionListener(e -> {
@@ -211,11 +220,40 @@ public class GameGUI extends JFrame {
             }
         });
 
-        painel.add(tituloLoja, BorderLayout.NORTH);
-        painel.add(new JScrollPane(listaItensLoja), BorderLayout.CENTER);
-        painel.add(btnComprar, BorderLayout.SOUTH);
+        painelCompra.add(new JScrollPane(listaItensLoja), BorderLayout.CENTER);
+        painelCompra.add(btnComprar, BorderLayout.SOUTH);
 
-        return painel;
+        JPanel painelVenda = new JPanel(new BorderLayout(10, 10));
+        painelVenda.setOpaque(false);
+        painelVenda.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Seu Inventário (Vender)", 0, 0, null, Color.YELLOW));
+
+        JList<Item> listaInventarioLoja = new JList<>(modeloListaInventario);
+        listaInventarioLoja.setBackground(new Color(20, 20, 20));
+        listaInventarioLoja.setForeground(Color.WHITE);
+        listaInventarioLoja.setSelectionBackground(new Color(80, 80, 80));
+        listaInventarioLoja.setFont(new Font("Monospaced", Font.PLAIN, 14));
+
+        JButton btnVender = criarBotaoEstilizado("Vender Item Selecionado");
+        btnVender.addActionListener(e -> {
+            Item itemSelecionado = listaInventarioLoja.getSelectedValue();
+            if (itemSelecionado == null) {
+                JOptionPane.showMessageDialog(this, "Nenhum item do seu inventário foi selecionado.");
+                return;
+            }
+
+            String resultadoVenda = loja.realizarVenda(jogador, itemSelecionado);
+            JOptionPane.showMessageDialog(this, resultadoVenda);
+            atualizarDisplay();
+        });
+
+        painelVenda.add(new JScrollPane(listaInventarioLoja), BorderLayout.CENTER);
+        painelVenda.add(btnVender, BorderLayout.SOUTH);
+
+        painelPrincipalLoja.add(painelCompra);
+        painelPrincipalLoja.add(painelVenda);
+
+        return painelPrincipalLoja;
     }
 
     private JPanel criarPainelMapa() {
@@ -319,6 +357,7 @@ public class GameGUI extends JFrame {
         painelAcoesBatalha.add(btnHabilidade1);
         painelAcoesBatalha.add(btnFugir);
         btnAtacar.addActionListener(e -> executarTurnoBatalha());
+        btnHabilidade1.addActionListener(e -> executarTurnoHabilidade()); // AÇÃO ADICIONADA
         btnFugir.addActionListener(e -> fugirBatalha());
         painel.add(painelCombatentes, BorderLayout.NORTH);
         painel.add(new JScrollPane(logBatalha), BorderLayout.CENTER);
@@ -336,8 +375,9 @@ public class GameGUI extends JFrame {
     private void atualizarDisplay() {
         nivelLabel.setText("Nível " + jogador.getNivel());
         hpLabel.setText("HP: " + jogador.getHpAtual() + "/" + jogador.getHpMax());
-        atkLabel.setText("ATK: " + jogador.getAtk());
-        defesaLabel.setText("DEF: " + jogador.getDefesa());
+        manaLabel.setText("MP: " + jogador.getManaAtual() + "/" + jogador.getManaMax());
+        atkLabel.setText("ATK: " + jogador.getTotalAtk());
+        defesaLabel.setText("DEF: " + jogador.getTotalDef());
         dinheiroLabel.setText("Ouro: " + jogador.getDinheiro());
 
         xpBar.setMaximum(jogador.getXpParaProximoNivel());
@@ -410,7 +450,7 @@ public class GameGUI extends JFrame {
         if (inimigoAtual == null || !inimigoAtual.estaVivo()) return;
 
         jogador.atacar(inimigoAtual);
-        logBatalha.append("Você ataca o " + inimigoAtual.getNome() + ", causando " + jogador.getAtk() + " de dano.\n");
+        logBatalha.append("Você ataca o " + inimigoAtual.getNome() + ", causando " + jogador.getTotalAtk() + " de dano.\n");
         hpInimigoBar.setValue(inimigoAtual.getHpAtual());
         hpInimigoBar.setString(inimigoAtual.getHpAtual() + "/" + inimigoAtual.getHpMax());
 
@@ -438,27 +478,93 @@ public class GameGUI extends JFrame {
             return;
         }
 
-        int danoReal = inimigoAtual.atacar(jogador); // ✅ aplica e retorna
+        int danoReal = inimigoAtual.atacar(jogador);
         logBatalha.append("O " + inimigoAtual.getNome() + " ataca, causando " + danoReal + " de dano.\n");
 
-    
         hpJogadorBar.setValue(jogador.getHpAtual());
         hpJogadorBar.setString(jogador.getHpAtual() + "/" + jogador.getHpMax());
-        hpLabel.setText("HP: " + jogador.getHpAtual() + "/" + jogador.getHpMax());
+        atualizarDisplay(); // Atualiza HP no painel superior
 
         if (!jogador.estaVivo()) {
             logBatalha.append("Você foi derrotado...\n");
             JOptionPane.showMessageDialog(this, "Você foi derrotado!", "Fim de Jogo", JOptionPane.ERROR_MESSAGE);
-            reiniciarJogo(); // ✅ Aqui está a mudança!
+            reiniciarJogo();
+        }
+    }
+
+    // --- NOVO MÉTODO PARA LÓGICA DA HABILIDADE ---
+    private void executarTurnoHabilidade() {
+        if (inimigoAtual == null || !inimigoAtual.estaVivo()) return;
+
+        Habilidade skill = jogador.getHabilidadePrincipal();
+        String resultadoAcao = jogador.usarHabilidade(skill, inimigoAtual);
+        logBatalha.append(resultadoAcao + "\n");
+
+        atualizarDisplay(); // Atualiza o manaLabel e outros status
+
+        // Se a mana não foi suficiente, o turno do jogador acaba e o inimigo não ataca.
+        if (!resultadoAcao.startsWith("Você usou")) {
+            return;
+        }
+
+        hpInimigoBar.setValue(inimigoAtual.getHpAtual());
+        hpInimigoBar.setString(inimigoAtual.getHpAtual() + "/" + inimigoAtual.getHpMax());
+
+        if (!inimigoAtual.estaVivo()) {
+            logBatalha.append("Você derrotou o " + inimigoAtual.getNome() + "!\n");
+
+            int xpGanha = inimigoAtual.getXpConcedido();
+            String mensagemLevelUp = jogador.ganharXp(xpGanha);
+            logBatalha.append("Você ganhou " + xpGanha + " de XP!\n");
+            if (!mensagemLevelUp.isEmpty()) {
+                logBatalha.append(mensagemLevelUp);
+                JOptionPane.showMessageDialog(this, mensagemLevelUp);
+            }
+            jogador.adicionarDinheiro(10);
+            Item itemDropado = inimigoAtual.getDrop();
+            if (itemDropado != null) {
+                jogador.adicionarItem(itemDropado);
+                logBatalha.append("Você obteve: " + itemDropado.getNome() + "!\n");
+            }
+            inimigoAtual = null;
+            cardLayout.show(painelCentral, "EXPLORACAO");
+            atualizarDisplay();
+            return;
+        }
+
+        int danoReal = inimigoAtual.atacar(jogador);
+        logBatalha.append("O " + inimigoAtual.getNome() + " ataca, causando " + danoReal + " de dano.\n");
+
+        hpJogadorBar.setValue(jogador.getHpAtual());
+        hpJogadorBar.setString(jogador.getHpAtual() + "/" + jogador.getHpMax());
+        atualizarDisplay(); // Atualiza HP no painel superior
+
+        if (!jogador.estaVivo()) {
+            logBatalha.append("Você foi derrotado...\n");
+            JOptionPane.showMessageDialog(this, "Você foi derrotado!", "Fim de Jogo", JOptionPane.ERROR_MESSAGE);
+            reiniciarJogo();
         }
     }
 
     private void usarItemSelecionado() {
         int indiceSelecionado = listaInventario.getSelectedIndex();
         if (indiceSelecionado != -1) {
-            String resultado = jogador.usarItem(indiceSelecionado);
+            Item itemSelecionado = modeloListaInventario.getElementAt(indiceSelecionado);
+            String resultado = "";
+
+            switch (itemSelecionado.getTipo()) {
+                case CONSUMIVEL_CURA:
+                    resultado = jogador.usarItem(indiceSelecionado);
+                    break;
+                case EQUIPAMENTO_ARMA:
+                case EQUIPAMENTO_ARMADURA:
+                    resultado = jogador.equiparItem(itemSelecionado);
+                    break;
+            }
+
             JOptionPane.showMessageDialog(this, resultado);
             atualizarDisplay();
+
         } else {
             JOptionPane.showMessageDialog(this, "Nenhum item selecionado.");
         }
@@ -471,7 +577,6 @@ public class GameGUI extends JFrame {
     }
 
     // --- MÉTODOS DE APOIO E ESTILIZAÇÃO ---
-
     private void estilizarLabel(JLabel label, Color cor) {
         label.setForeground(cor);
         label.setFont(new Font("Tahoma", Font.BOLD, 14));
@@ -484,5 +589,9 @@ public class GameGUI extends JFrame {
         botao.setFocusPainted(false);
         botao.setBorder(new LineBorder(Color.BLACK));
         return botao;
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new GameGUI());
     }
 }

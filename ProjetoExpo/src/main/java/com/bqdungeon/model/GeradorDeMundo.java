@@ -11,10 +11,10 @@ public class GeradorDeMundo {
     private static String[] tiposInimigo = {"Zumbi", "Esqueleto", "Morcego da Caverna", "Rato Gigante"};
     private static Item[] dropsPossiveis = {
             // CORREÇÃO: Adicionado o preço (valor de venda) para cada item.
-            new Item("Osso Velho", Item.TipoItem.EQUIPAMENTO_ARMA, 2, 5),
-            new Item("Pedaço de Armadura", Item.TipoItem.EQUIPAMENTO_ARMADURA, 2, 10),
-            new Item("Asa de Morcego", Item.TipoItem.CONSUMIVEL_CURA, 5, 8),
-            new Item("Poção de Cura Menor", Item.TipoItem.CONSUMIVEL_CURA, 20, 25)
+            new Item("Osso Velho", Item.TipoItem.EQUIPAMENTO_ARMA, 2, 5, 1, 0),
+            new Item("Pedaço de Armadura", Item.TipoItem.EQUIPAMENTO_ARMADURA, 2, 10, 0, 5),
+            new Item("Asa de Morcego", Item.TipoItem.CONSUMIVEL_CURA, 5, 8, 0, 0),
+            new Item("Poção de Cura Menor", Item.TipoItem.CONSUMIVEL_CURA, 20, 25, 0, 0)
     };
 
     /**
