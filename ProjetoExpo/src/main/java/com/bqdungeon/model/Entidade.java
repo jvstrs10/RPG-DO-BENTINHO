@@ -75,3 +75,5 @@ public abstract class Entidade {
         return atk;
     }
 }
+
+

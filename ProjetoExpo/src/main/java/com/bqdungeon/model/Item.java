@@ -1,9 +1,7 @@
 package com.bqdungeon.model;
 
-// A classe Item define a estrutura de todos os objetos que o jogador pode carregar.
 public class Item {
 
-    // Enum para categorizar os diferentes tipos de itens.
     public enum TipoItem {
         CONSUMIVEL_CURA,
         EQUIPAMENTO_ARMA,
@@ -12,15 +10,21 @@ public class Item {
 
     private String nome;
     private TipoItem tipo;
-    private int valorEfeito;
-    private int preco; // Novo atributo para o custo do item.
+    private int valorEfeito; // Para poções, continua sendo a cura. Para equipamentos, pode ser ignorado ou usado para outra coisa.
+    private int preco;
 
-    // Construtor atualizado para incluir o preço.
-    public Item(String nome, TipoItem tipo, int valorEfeito, int preco) {
+    // --- NOVOS ATRIBUTOS DE STATUS ---
+    private int bonusAtk;
+    private int bonusDef;
+
+    // Construtor atualizado para incluir os bônus.
+    public Item(String nome, TipoItem tipo, int valorEfeito, int preco, int bonusAtk, int bonusDef) {
         this.nome = nome;
         this.tipo = tipo;
         this.valorEfeito = valorEfeito;
         this.preco = preco;
+        this.bonusAtk = bonusAtk;
+        this.bonusDef = bonusDef;
     }
 
     // --- Getters ---
@@ -28,11 +32,20 @@ public class Item {
     public TipoItem getTipo() { return tipo; }
     public int getValorEfeito() { return valorEfeito; }
     public int getPreco() { return preco; }
+    public int getBonusAtk() { return bonusAtk; } // Novo getter
+    public int getBonusDef() { return bonusDef; } // Novo getter
 
-    // O método toString é modificado para exibir o nome e o preço na interface.
+    // O método toString agora mostrará os bônus do item.
     @Override
     public String toString() {
-        return nome + " (" + preco + " Ouro)";
+        String stats = "";
+        if (bonusAtk > 0) stats += " +" + bonusAtk + " ATK";
+        if (bonusDef > 0) stats += " +" + bonusDef + " DEF";
+
+        if (!stats.isEmpty()) {
+            return nome + " (" + stats.trim() + ") [" + preco + " Ouro]";
+        } else {
+            return nome + " [" + preco + " Ouro]";
+        }
     }
 }
-
